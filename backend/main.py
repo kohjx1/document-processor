@@ -10,10 +10,25 @@ import numpy as np
 import pandas as pd
 import re
 from pdf2image import convert_from_bytes
+from pydantic import BaseModel
+from typing import TypedDict, Optional
+
+
+class NormalizedBoundingBox(TypedDict):
+    tag: str
+    bottom: float
+    left: float
+    top: float
+    right: float
+
 
 from typing import Union
 
 from fastapi import FastAPI
+
+class ExtractionConfig(BaseModel):
+    arr_normalized_bb: list[NormalizedBoundingBox]
+
 
 app = FastAPI()
 
@@ -28,7 +43,7 @@ def read_item(item_id: int, q: Union[str, None] = None):
 
 
 @app.post("/process")
-def processDocument():
+def define_Extraction(arr_normalized_bb:ExtractionConfig):
     return "processing api"
 
 
