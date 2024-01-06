@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import "./App.css";
 import { PdfViewer } from "react-pdf-selection";
+import axios from 'axios'
 
 function App() {
   const [areaSelectionActive, setAreaSelectionActive] = useState(true);
@@ -9,6 +10,11 @@ function App() {
   const [normalizedPlacement, setNormalizedPlacement] = useState({});
   const [selections, setSelections] = useState([]);
   const [tag, setTag] = useState("");
+
+  const instance = axios.create({
+    baseURL: 'http://localhost:8000',
+  timeout: 100000,
+  })
 
   return (
     <>
@@ -80,10 +86,10 @@ function App() {
                 <td>top</td>
                 <td>left</td>
               </tr>
-              {selections.map((selection) => {
-                console.log(selection);
+              {selections.map((selection,i) => {
+                console.log(selection,i);
                 return (
-                  <tr>
+                  <tr key={i}>
                     <td>{selection.tag}</td>
                     <td>{selection.bottom}</td>
                     <td>{selection.right}</td>
@@ -94,6 +100,13 @@ function App() {
               })}
             </tbody>
           </table>
+          <div>
+            {selections ? <button className="bg-orange-500 border-2 border-gray-500 rounded-md" onClick={()=>{
+              instance.post('/process', {arr_normalized_bb: selections}).then((res)=>{
+                console.log([...res.data.split("\n\n").slice(0,res.data.split("\n\n").length - 1),res.data.split("\n\n").slice(-1)[0].replace("\n","")])
+              })
+            }}>Save Configuration</button> : ""}
+          </div>
         </div>
       </div>
     </>
