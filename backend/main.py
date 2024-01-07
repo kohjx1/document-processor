@@ -14,6 +14,8 @@ from pydantic import BaseModel
 from typing import TypedDict, Optional
 import logging
 import processor.extractor
+from contextlib import asynccontextmanager
+
 
 class NormalizedBoundingBox(TypedDict):
     tag: str
@@ -27,6 +29,16 @@ from typing import Union
 
 from fastapi import FastAPI,HTTPException,status
 from fastapi.middleware.cors import CORSMiddleware
+import psycopg2
+import dbConnect
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logging.info("before start")
+    dbConnect.connect()
+    yield
+    logging.info("before shut down")
+
 
 logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 # logging.info('Admin logged in')
@@ -36,7 +48,7 @@ class ExtractionConfig(BaseModel):
     arr_normalized_bb: list[NormalizedBoundingBox]
 
 
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 origins = [
     "http://localhost:3000",
@@ -49,6 +61,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
 
 
 @app.get("/")
